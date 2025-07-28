@@ -94,56 +94,50 @@ cd Early_Disaster_Prediction
 
 
 2️⃣ (Optional) Create a Virtual Environment
-bash
-Copy
-Edit
+
+
 python -m venv venv
 venv\Scripts\activate   # Windows only
+
 3️⃣ Install Required Libraries
 You can use requirements.txt:
 
-bash
-Copy
-Edit
+
 pip install -r requirements.txt
 Or manually install:
 
-bash
-Copy
-Edit
 pip install pandas numpy matplotlib scikit-learn fpdf customtkinter playsound
+
+
 ▶️ Run the Application
 To launch GUI:
-bash
-Copy
-Edit
+
+
 python main.py
 Or directly run:
 
-bash
-Copy
-Edit
+
 cd app
 python gui.py
 To retrain ML model:
-bash
-Copy
-Edit
+
+
+
 python train_model.py
 📸 Sample Output
-yaml
-Copy
-Edit
+
+
+
 Prediction: FLOOD
 Probability: 89.2%
 Alert Triggered: YES
 PDF Report Saved: Disaster_Report_20250725_073605.pdf
+
 📜 Dependencies
 Here are the Python libraries used:
 
 nginx
-Copy
-Edit
+
 pandas
 numpy
 matplotlib
@@ -178,9 +172,6 @@ For major feature changes, open an issue first to discuss what you would like to
 This project is licensed under the MIT License.
 You can use, distribute, and modify freely with attribution.
 
-yaml
-Copy
-Edit
 
 ---
 
