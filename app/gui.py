@@ -1,155 +1,171 @@
-import customtkinter as ctk
-from predict import predict_disaster
-from playsound import playsound
-from reportlab.pdfgen import canvas
+# ✅ File: gui.py
+import tkinter as tk
+from tkinter import messagebox, filedialog
+import re
+from fpdf import FPDF
+from csv_reader import read_latest_input
 import datetime
+import os
+import pyttsx3
+import sys
+import joblib
+import csv
 
-ctk.set_appearance_mode("System")
-ctk.set_default_color_theme("blue")
+# 🔁 Load model
+model = joblib.load('../model/model.pkl')
 
-app = ctk.CTk()
-app.geometry("400x450")
-app.title("🌧️ Early Disaster Prediction")
+# 🎙 Initialize Jarvis (speech engine)
+engine = pyttsx3.init()
 
-title = ctk.CTkLabel(app, text="Disaster Risk Predictor", font=("Arial", 20))
-title.pack(pady=20)
+# 📁 Ensure log folder exists
+if not os.path.exists("logs"):
+    os.makedirs("logs")
 
-rainfall_input = ctk.CTkEntry(app, placeholder_text="Rainfall (mm)")
-rainfall_input.pack(pady=10)
+# 📤 Export to PDF (Fixed Version)
+def clean_text(text):
+    """Remove emojis and unsupported characters for FPDF (latin-1 only)."""
+    if not isinstance(text, str):
+        text = str(text)
+    return re.sub(r'[^\x00-\xFF]', '', text)  # Removes emojis and non-latin chars
 
-temperature_input = ctk.CTkEntry(app, placeholder_text="Temperature (°C)")
-temperature_input.pack(pady=10)
+# 📤 Export to PDF (with encoding fix)
+def export_to_pdf(data, prediction):
+    pdf = FPDF()
+    pdf.add_page()
+    pdf.set_font("Arial", size=14)
 
-humidity_input = ctk.CTkEntry(app, placeholder_text="Humidity (%)")
-humidity_input.pack(pady=10)
+    pdf.cell(200, 10, txt=clean_text("Early Disaster Prediction Report"), ln=True, align="C")
+    pdf.ln(10)
 
-result_label = ctk.CTkLabel(app, text="", font=("Arial", 16))
-result_label.pack(pady=20)
+    for key, value in data.items():
+        pdf.cell(200, 10, txt=clean_text(f"{key}: {value}"), ln=True)
 
+    pdf.ln(5)
+    pdf.cell(200, 10, txt=clean_text(f"Prediction: {prediction}"), ln=True)
+
+    file_path = filedialog.asksaveasfilename(
+        defaultextension=".pdf",
+        filetypes=[("PDF files", "*.pdf")],
+        initialfile=f"Disaster_Report_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}"
+    )
+
+    if file_path:
+        pdf.output(file_path)
+        messagebox.showinfo("✅ Success", f"PDF exported successfully:\n{file_path}")
+
+# 🔊 Speak
+def speak(text):
+    engine.say(text)
+    engine.runAndWait()
+
+# 🌐 GUI Setup
+root = tk.Tk()
+root.title("🌍 Early Disaster Prediction")
+root.geometry("520x500")
+root.config(bg="#f0f8ff")
+
+tk.Label(root, text="Early Disaster Predictor", font=("Helvetica", 18, "bold"),
+         bg="#f0f8ff", fg="navy").pack(pady=10)
+
+# 📥 Input fields
+fields = {}
+for label in ["🌧 Rainfall (mm):", "🌡 Temperature (°C):", "💧 Humidity (%)", "🌪 Wind Speed (km/h):", "🌱 Soil Moisture (%):"]:
+    tk.Label(root, text=label, bg="#f0f8ff", font=("Arial", 12)).pack()
+    entry = tk.Entry(root, font=("Arial", 12))
+    entry.pack()
+    fields[label] = entry
+
+# 📊 Result label
+result_text = tk.StringVar()
+result_label = tk.Label(root, textvariable=result_text, font=("Arial", 14, "bold"),
+                        bg="#f0f8ff", fg="green")
+result_label.pack(pady=10)
+
+# 🔍 Prediction function
 def predict():
     try:
-        rain = float(rainfall_input.get())
-        temp = float(temperature_input.get())
-        hum = float(humidity_input.get())
+        # Get inputs
+        try:
+            rainfall = float(fields["🌧 Rainfall (mm):"].get().strip())
+            temperature = float(fields["🌡 Temperature (°C):"].get().strip())
+            humidity = float(fields["💧 Humidity (%)"].get().strip())
+            wind_speed = float(fields["🌪 Wind Speed (km/h):"].get().strip())
+            soil_moisture = float(fields["🌱 Soil Moisture (%):"].get().strip())
+        except ValueError:
+            messagebox.showerror("❌ Input Error", "Please enter valid numeric values.")
+            return
 
-        result = predict_disaster(rain, temp, hum)
-        result_label.configure(text=result)
+        # Save to latest_input.csv
+        with open("latest_input.csv", "w", newline="") as f:
+            writer = csv.writer(f)
+            writer.writerow(["Temperature", "Humidity", "Wind Speed", "Soil Moisture"])
+            writer.writerow([temperature, humidity, wind_speed, soil_moisture])
 
-        # 🔊 Sound Alert
-        if "High" in result:
-            playsound("alert_high.mp3")  # add this mp3 to app/
+        # 🔁 Get input from CSV and predict
+        latest_data = read_latest_input()
+        if latest_data:
+            prediction = model.predict([latest_data])[0]
+
+            if prediction == 1:
+                result_text.set("⚠️ Risk of Disaster Detected!")
+                messagebox.showwarning("⚠️ Alert", "Risk of Disaster Detected!")
+                speak("Warning! Risk of disaster detected.")
+            else:
+                result_text.set("✅ No Risk Detected.")
+                messagebox.showinfo("Safe", "No Risk Detected.")
+                speak("No risk detected.")
+
+            # Save result for PDF
+            root.last_data = {
+                "Rainfall (mm)": rainfall,
+                "Temperature (°C)": temperature,
+                "Humidity (%)": humidity,
+                "Wind Speed (km/h)": wind_speed,
+                "Soil Moisture (%)": soil_moisture
+            }
+            root.last_prediction = result_text.get()
+
         else:
-            playsound("safe.mp3")        # add this mp3 to app/
-    except:
-        result_label.configure(text="⚠️ Invalid input!")
+            result_text.set("⚠️ Could not read input CSV.")
+            speak("Something went wrong reading CSV.")
 
-def export_to_pdf(rain, temp, hum, result_text):
-    filename = f"Disaster_Report_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf"
-    c = canvas.Canvas(filename)
-    c.setFont("Helvetica-Bold", 14)
-    c.drawString(100, 750, "🌧️ Early Disaster Prediction Report")
-    c.setFont("Helvetica", 12)
-    c.drawString(100, 700, f"Rainfall: {rain} mm")
-    c.drawString(100, 680, f"Temperature: {temp} °C")
-    c.drawString(100, 660, f"Humidity: {hum} %")
-    c.drawString(100, 640, f"Result: {result_text}")
-    c.drawString(100, 620, f"Date: {datetime.datetime.now().strftime('%d-%m-%Y %H:%M:%S')}")
-    c.save()
-    print(f"✅ Report exported as {filename}")
+    except Exception as e:
+        result_text.set(f"❌ Error: {str(e)}")
+        speak("Error occurred during prediction.")
 
-def export():
+# 🧹 Clear inputs
+def clear_all():
+    for entry in fields.values():
+        entry.delete(0, tk.END)
+    result_text.set("")
+
+# 📤 Export PDF
+def export_report():
     try:
-        rain = float(rainfall_input.get())
-        temp = float(temperature_input.get())
-        hum = float(humidity_input.get())
-        result = predict_disaster(rain, temp, hum)
-        export_to_pdf(rain, temp, hum, result)
-        result_label.configure(text="✅ PDF Exported!")
-    except:
-        result_label.configure(text="⚠️ Cannot Export")
-
-predict_btn = ctk.CTkButton(app, text="Predict", command=predict)
-predict_btn.pack(pady=10)
-
-export_btn = ctk.CTkButton(app, text="Export Report to PDF", command=export)
-export_btn.pack(pady=10)
-
-app.mainloop()
-# app/gui.py
-import customtkinter as ctk
-from predict import predict_disaster
-from playsound import playsound
-from reportlab.pdfgen import canvas
-import datetime
-
-ctk.set_appearance_mode("System")
-ctk.set_default_color_theme("blue")
-
-app = ctk.CTk()
-app.geometry("400x450")
-app.title("🌧️ Early Disaster Prediction")
-
-title = ctk.CTkLabel(app, text="Disaster Risk Predictor", font=("Arial", 20))
-title.pack(pady=20)
-
-rainfall_input = ctk.CTkEntry(app, placeholder_text="Rainfall (mm)")
-rainfall_input.pack(pady=10)
-
-temperature_input = ctk.CTkEntry(app, placeholder_text="Temperature (°C)")
-temperature_input.pack(pady=10)
-
-humidity_input = ctk.CTkEntry(app, placeholder_text="Humidity (%)")
-humidity_input.pack(pady=10)
-
-result_label = ctk.CTkLabel(app, text="", font=("Arial", 16))
-result_label.pack(pady=20)
-
-def predict():
-    try:
-        rain = float(rainfall_input.get())
-        temp = float(temperature_input.get())
-        hum = float(humidity_input.get())
-
-        result = predict_disaster(rain, temp, hum)
-        result_label.configure(text=result)
-
-        if "High" in result:
-            playsound("alert_high.mp3")
+        if hasattr(root, 'last_data') and hasattr(root, 'last_prediction'):
+            export_to_pdf(root.last_data, root.last_prediction)
         else:
-            playsound("safe.mp3")
+            messagebox.showerror("⚠ Error", "Please predict before exporting.")
+    except Exception as e:
+        messagebox.showerror("⚠ Error", f"Failed to export PDF:\n{str(e)}")
 
-    except:
-        result_label.configure(text="⚠️ Invalid input!")
+# 🔘 Buttons
+btn_frame = tk.Frame(root, bg="#f0f8ff")
+btn_frame.pack(pady=10)
 
-def export_to_pdf(rain, temp, hum, result_text):
-    filename = f"Disaster_Report_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf"
-    c = canvas.Canvas(filename)
-    c.setFont("Helvetica-Bold", 14)
-    c.drawString(100, 750, "🌧️ Early Disaster Prediction Report")
-    c.setFont("Helvetica", 12)
-    c.drawString(100, 700, f"Rainfall: {rain} mm")
-    c.drawString(100, 680, f"Temperature: {temp} °C")
-    c.drawString(100, 660, f"Humidity: {hum} %")
-    c.drawString(100, 640, f"Result: {result_text}")
-    c.drawString(100, 620, f"Date: {datetime.datetime.now().strftime('%d-%m-%Y %H:%M:%S')}")
-    c.save()
-    print(f"✅ Report exported as {filename}")
+buttons = [
+    ("🔍 Predict", predict, "#4CAF50"),
+    ("🧹 Clear", clear_all, "#f39c12"),
+    ("📤 Export PDF", export_report, "#3498db"),
+    ("❌ Exit", root.quit, "#e74c3c")
+]
 
-def export():
-    try:
-        rain = float(rainfall_input.get())
-        temp = float(temperature_input.get())
-        hum = float(humidity_input.get())
-        result = predict_disaster(rain, temp, hum)
-        export_to_pdf(rain, temp, hum, result)
-        result_label.configure(text="✅ PDF Exported!")
-    except:
-        result_label.configure(text="⚠️ Cannot Export")
+for i, (text, func, color) in enumerate(buttons):
+    tk.Button(btn_frame, text=text, command=func, bg=color, fg="white",
+              font=("Arial", 10, "bold"), width=12).grid(row=0, column=i, padx=5)
 
-predict_btn = ctk.CTkButton(app, text="Predict", command=predict)
-predict_btn.pack(pady=10)
+tk.Label(root, text="Developed by Dhanraj Sonawane",
+         bg="#f0f8ff", font=("Arial", 9)).pack(side="bottom", pady=5)
 
-export_btn = ctk.CTkButton(app, text="Export Report to PDF", command=export)
-export_btn.pack(pady=10)
-
-app.mainloop()
+# 🚀 Start GUI
+root.mainloop()

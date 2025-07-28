@@ -1,15 +1,14 @@
 # app/predict.py
-import pickle
-import os
-
-model_path = os.path.join("..", "model", "model.pkl")
-with open(model_path, "rb") as file:
-    model = pickle.load(file)
 
 def predict_disaster(rainfall, temperature, humidity):
-    features = [[rainfall, temperature, humidity]]
-    prediction = model.predict(features)
-    if prediction[0] == 1:
-        return "🔴 High Disaster Risk"
+    """
+    Predict disaster risk based on rainfall, temperature, and humidity.
+    """
+    if rainfall > 150 and temperature > 45 and humidity > 80:
+        return "⚠ Severe Disaster Risk"
+    elif rainfall > 100 and temperature > 35:
+        return "⚠ Moderate Disaster Risk"
+    elif rainfall > 50:
+        return "⚠ Mild Disaster Risk"
     else:
-        return "🟢 No Disaster Risk"
+        return "✅ No Immediate Disaster Risk"

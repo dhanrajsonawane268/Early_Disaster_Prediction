@@ -1,0 +1,16 @@
+import pandas as pd
+import random
+
+data = []
+for _ in range(5000):
+    rainfall = random.randint(0, 300)
+    temperature = random.randint(20, 45)
+    humidity = random.randint(20, 100)
+    flood = 1 if (rainfall > 150 and humidity > 70 and temperature > 30) else 0
+    data.append([rainfall, temperature, humidity, flood])
+
+df = pd.DataFrame(data, columns=["rainfall", "temperature", "humidity", "flood"])
+
+# Save to CSV in current directory
+df.to_csv("disaster_data.csv", index=False)
+print("✅ 'disaster_data.csv' file created successfully!")

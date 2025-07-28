@@ -1,0 +1,27 @@
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.ensemble import RandomForestClassifier
+import pickle
+
+# Step 1: Load or create dataset
+data = pd.DataFrame({
+    'Temperature': [32, 28.5, 35, 26.2, 36.8, 24.0],
+    'Humidity': [60, 50, 70, 40, 75, 35],
+    'Wind Speed': [15, 10, 25, 12, 20, 8],
+    'Soil Moisture': [45, 30, 60, 20, 65, 15],
+    'Risk': [1, 0, 1, 0, 1, 0]
+})
+
+# Step 2: Split into features and label
+X = data[['Temperature', 'Humidity', 'Wind Speed', 'Soil Moisture']]
+y = data['Risk']
+
+# Step 3: Train the model
+model = RandomForestClassifier()
+model.fit(X, y)
+
+# Step 4: Save the model to file
+with open("model.pkl", "wb") as file:
+    pickle.dump(model, file)
+
+print("✅ model.pkl file ready.")
