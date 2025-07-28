@@ -1,112 +1,194 @@
 # 🌪️ Early Disaster Prediction using Machine Learning
 
-This project is an intelligent system that predicts natural disasters early using historical data and machine learning models. It helps alert people before the disaster hits and supports emergency planning.
+This is an intelligent desktop-based application that predicts natural disasters such as floods, earthquakes, and cyclones using machine learning models. It alerts users in real-time with an interactive GUI, sound alerts, and report generation.
 
 ---
 
 ## 🚀 Features
 
-- ✅ Predict disasters like floods, earthquakes, and wildfires based on user input
-- ✅ User-friendly GUI using **Tkinter**
-- ✅ Real-time alert sound notification
-- ✅ PDF report generation of predictions
-- ✅ Weather API Integration (optional)
-- ✅ Clean & Modular Python Code
+- ✅ Predict disasters (Flood, Earthquake, Cyclone, or None) using ML
+- 📊 Visual prediction charts using `matplotlib`
+- 🖥️ Interactive GUI built with `customtkinter`
+- 🧾 PDF Report generation with disaster result
+- 🔊 Sound alert system for high-risk predictions
+- 📂 Dynamic input handling from `latest_input.csv`
+- 🧠 Model retrainable via `train_model.py`
+- 📁 Structured logging of predictions
 
 ---
 
 ## 🛠️ Tech Stack
 
-| Area            | Tools/Tech Used           |
-|-----------------|---------------------------|
-| Language        | Python                    |
-| GUI             | Tkinter                   |
-| ML Libraries    | pandas, scikit-learn      |
-| Visualization   | matplotlib (if used)      |
-| Alert & Report  | playsound, FPDF           |
+| Module            | Tech / Tool Used                  |
+|-------------------|-----------------------------------|
+| Language          | Python                            |
+| GUI               | `customtkinter`, `Tkinter`        |
+| ML                | `scikit-learn` (Random Forest)    |
+| Data Processing   | `pandas`, `numpy`                 |
+| Visualization     | `matplotlib`                      |
+| Report Export     | `fpdf`                            |
+| Sound Notification| `playsound`                       |
 
 ---
 
-## 📁 Folder Structure
+## 📂 Project Folder Structure
 
 Early_Disaster_Prediction/
-├── data/ # Dataset files
-├── model/ # Trained ML models
-├── gui/ # GUI code (Tkinter-based)
-├── utils/ # Helper scripts (e.g., PDF export, alert)
-├── assets/ # Images, icons, sounds
-├── main.py # Entry point to launch the app
-├── requirements.txt # Python dependencies
+│
+├── app/
+│ ├── gui.py # GUI logic
+│ ├── predict.py # ML prediction logic
+│ ├── csv_reader.py # Input CSV reader
+│ ├── logs/ # Prediction log files
+│ ├── *.pdf # Exported reports
+│ └── model.pkl # Latest model for prediction
+│
+├── data/
+│ └── flood_dataset.csv # Training dataset
+│
+├── model/
+│ ├── disaster_model.pkl # Trained model file
+│ └── main.py # Model retraining script (optional)
+│
+├── main.py # Combined GUI + Logic launcher
+├── main_predictor.py # Standalone prediction module
+├── train_model.py # Training script (generates .pkl)
+├── requirements.txt # Required Python libraries
 └── README.md # Project documentation
 
 
 
 ---
 
-## 🧠 How It Works
+## 🧠 How the Model Works
 
-1. User enters specific inputs related to disaster parameters (like temperature, pressure, humidity, etc.)
-2. The ML model predicts whether a disaster may occur.
-3. GUI displays prediction result with alert (if disaster is likely).
-4. Option to generate a PDF report and trigger sound alert.
+- **Algorithm**: Random Forest Classifier
+- **Input Features**:
+  - Temperature
+  - Rainfall
+  - Humidity
+  - Wind Speed
+- **Training**: `train_model.py` trains the model using `flood_dataset.csv`
+- **Prediction**: `predict.py` reads from CSV or GUI input and uses model to predict
 
 ---
 
-## 🖥️ How to Run the Project
+## 🖼️ GUI Functionalities
 
-### 🔧 Install dependencies
+- 🧾 Accept user input (4 parameters)
+- 📈 Display prediction result with confidence
+- 📊 Real-time plot of disaster probability
+- 🔊 Trigger sound if disaster is likely
+- 🖨️ Export results into PDF report
+- 🧠 Auto-load trained model for faster inference
+
+---
+
+## 🧪 Installation & Setup Guide
+
+### 1️⃣ Clone the Repository
+
 ```bash
+git clone https://github.com/dhanrajsonawane268/Early_Disaster_Prediction.git
+cd Early_Disaster_Prediction
+
+
+2️⃣ (Optional) Create a Virtual Environment
+bash
+Copy
+Edit
+python -m venv venv
+venv\Scripts\activate   # Windows only
+3️⃣ Install Required Libraries
+You can use requirements.txt:
+
+bash
+Copy
+Edit
 pip install -r requirements.txt
+Or manually install:
 
-
-
-▶️ Run the app on bash
-
+bash
+Copy
+Edit
+pip install pandas numpy matplotlib scikit-learn fpdf customtkinter playsound
+▶️ Run the Application
+To launch GUI:
+bash
+Copy
+Edit
 python main.py
+Or directly run:
 
-📸 Screenshots
+bash
+Copy
+Edit
+cd app
+python gui.py
+To retrain ML model:
+bash
+Copy
+Edit
+python train_model.py
+📸 Sample Output
+yaml
+Copy
+Edit
+Prediction: FLOOD
+Probability: 89.2%
+Alert Triggered: YES
+PDF Report Saved: Disaster_Report_20250725_073605.pdf
+📜 Dependencies
+Here are the Python libraries used:
 
+nginx
+Copy
+Edit
+pandas
+numpy
+matplotlib
+scikit-learn
+fpdf
+customtkinter
+playsound
+All are included in requirements.txt
 
+📌 Future Enhancements
+Integrate live weather API (OpenWeatherMap)
 
-📄 Sample Output
+Add SMS/Email Alert system using Twilio
 
-Prediction: High chances of Flood in the next 2 hours.
-Alert triggered.
-PDF Report saved to /reports/flood_prediction.pdf
+Web Interface (Streamlit/Django)
 
+Store user inputs in DB for analytics
 
-💡 Future Enhancements
-Add live weather data using Weather API
+Improve model with real-time weather feeds
 
-Add SMS or Email alert system
-
-Deploy as Web App or Mobile App (using Streamlit/Kivy)
-
-Improve model accuracy with advanced datasets
-
-👨‍💻 Author
+✨ Author
 Dhanraj Rajendra Sonawane
-MCA Student | Python Developer | ML Enthusiast
-LinkedIn
 📧 dhanrajsonawane268@gmail.com
+🧑‍🎓 MCA | Python & AI/ML Enthusiast
+🔗 GitHub Profile
 
-
+📢 Contribution
+Feel free to fork this repo, create a branch, make changes and open a pull request.
+For major feature changes, open an issue first to discuss what you would like to change.
 
 📜 License
 This project is licensed under the MIT License.
+You can use, distribute, and modify freely with attribution.
 
+yaml
+Copy
+Edit
 
 ---
 
-## ✅ Upload करण्यासाठी:
+## ✅ What Next?
 
-1. VS Code/GitHub Desktop मध्ये `Early_Disaster_Prediction/README.md` नावाने save कर.
-2. मग Git commands वापर:
+- Want this `README.md` file generated & uploaded automatically? Just say: **"generate file and upload to GitHub"**
+- Want `.gitignore` file too? I’ll generate it.
+- Want visual screenshots added? Upload them here or tell me file names in `assets/`.
 
-```bash
-git add README.md
-git commit -m "Added project README"
-git push origin main
-
-
+Ready to upload this perfect README? 😎 Just say the word.
 
