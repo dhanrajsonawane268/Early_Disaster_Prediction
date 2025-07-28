@@ -171,15 +171,3 @@ For major feature changes, open an issue first to discuss what you would like to
 📜 License
 This project is licensed under the MIT License.
 You can use, distribute, and modify freely with attribution.
-
-
----
-
-## ✅ What Next?
-
-- Want this `README.md` file generated & uploaded automatically? Just say: **"generate file and upload to GitHub"**
-- Want `.gitignore` file too? I’ll generate it.
-- Want visual screenshots added? Upload them here or tell me file names in `assets/`.
-
-Ready to upload this perfect README? 😎 Just say the word.
-
